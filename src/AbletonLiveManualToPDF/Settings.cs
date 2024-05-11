@@ -6,19 +6,23 @@ namespace AbletonLiveManualToPDF
     {
         public ValidationResult ValidationResult { get; set; }
 
-        // Optional Settings
+        // Optional
         private string _headerPage;
         public string HeaderPage { get => _headerPage; }
 
+        // Mandatory
         private string _homePage;
         public string HomePage { get => _homePage; }
 
+        // Mandatory
         private string _htmlFilePath;
         public string HtmlFilePath { get => _htmlFilePath; }
 
+        // Mandatory
         private string _linkPageContains;
         public string LinkPageContains { get => _linkPageContains; }
 
+        // Mandatory
         private string _pdfFilePath;
         public string PdfFilePath { get => _pdfFilePath; }
 
@@ -26,9 +30,6 @@ namespace AbletonLiveManualToPDF
         {
             ValidationResult = new ValidationResult();
             Get();
-            
-            if (ValidationResult.IsValidated)
-                Validate();
         }
 
         private void Get()
@@ -43,6 +44,8 @@ namespace AbletonLiveManualToPDF
 
                 // Optionals
                 _headerPage = ConfigurationManager.AppSettings["HeaderPage"];
+
+                Validate();
             }
             catch (Exception ex)
             {
