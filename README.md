@@ -65,17 +65,17 @@ In the content used by default, we should put in the settings something like:
 For example: [https://www.ableton.com/en/live-manual/12/](https://www.ableton.com/en/live-manual/12/)
 
 #### **HtmlFilePath**
-`HtmlFilePath` is the path and name file for the HTML document
+`HtmlFilePath` is <span style="color:red">**mandatory**</span> and represents the path and name file for the HTML document
 
 For example: `C:\temp\document.html`
 
 #### **LinkPageContains**
-`LinkPageContains` is a special section to help the process to get the content correctly. It is very similar to the `HomePage`
+`LinkPageContains` is <span style="color:red">**mandatory**</span> and represents a special section to help the process to get the content correctly. It is very similar to the `HomePage`
 
 For example: `/en/live-manual/12/`
 
 #### **PdfFilePath**
-`PdfFilePath` is the path and name file for the PDF document
+`PdfFilePath` is <span style="color:red">**mandatory**</span> and represents the path and name file for the PDF document
 
 For example: `C:\temp\document.pdf`
 
