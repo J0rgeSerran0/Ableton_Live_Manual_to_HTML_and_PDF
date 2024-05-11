@@ -83,7 +83,7 @@ For example: `C:\temp\document.pdf`
 ## Running the application
 You can generate and execute the code manually or use the binaries I have generated (*for Windows only in this moment*)
 
-> Your will need .NET 8 to execute this application
+> Your will need [.NET 8](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) to execute this application
 
 - The binaries for Windows can be located here: [Win-x64 - AbletonLiveManualToPDF v1.0.0.zip](/releases/v1.0.0/Win-x64 - AbletonLiveManualToPDF v1.0.0.zip)
 
