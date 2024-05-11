@@ -1,4 +1,4 @@
-# Ableton Live Online Manual to PDF
+# Ableton Live Online Manual to HTML & PDF
 .NET project to download and generate the Ableton Live online manual to PDF
 
 > This project is focused in the generation of the version 12 manual HTML & PDF of Ableton Live, but is valid to generate the HTML & PDF files for the manual of Ableton Live 11 too
