@@ -4,6 +4,7 @@
 > This project is focused in the generation of the version 12 manual HTML & PDF of Ableton Live, but is valid to generate the HTML & PDF files for the manual of Ableton Live 11 too
 
 Online References: 
+* [Ableton Live Manual (all)](https://help.ableton.com/hc/en-us/articles/206769450-Live-Manual)
 * [Ableton Live 11 - Manual Online](https://www.ableton.com/en/live-manual/11/)
 * [Ableton Live 12 - Manual Online](https://www.ableton.com/en/live-manual/12/)
 
