@@ -85,8 +85,8 @@ namespace AbletonLiveManualToPDF
                     var htmlToMarkdown = htmlContent;
                     var markdownContent = ConvertoContentToMarkdown(htmlToMarkdown);
 
-                    // Write the Markdown Content to disk
-                    WriteHtmlFile(settings.MarkdownFilePath, htmlContent, "Writing the Markdown file...");
+                    // Write the Markdown Content to disk                    
+                    WriteMarkdownFile(settings.MarkdownFilePath, markdownContent, "Writing the Markdown file...");
 
                     // Convert the Raw HTML to HTML using the template
                     htmlContent = ConvertToHtml(htmlContent, settings.HeaderPage);
@@ -320,7 +320,6 @@ namespace AbletonLiveManualToPDF
                 htmlNode.ParentNode.ReplaceChild(newHtmlNode, htmlNode);
             }
 
-
             foreach (var htmlNode in htmlDocument.DocumentNode.SelectNodes("//figure[contains(@class, 'image-container')]"))
             {
                 var figCaptionNode = htmlNode.SelectSingleNode("//figcaption");
@@ -448,6 +447,20 @@ namespace AbletonLiveManualToPDF
             Console.ResetColor();
 
             File.WriteAllText(filePath, htmlContent);
+
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"\tDONE! - {TerminalURL(filePath, filePath)}");
+            Console.ResetColor();
+            Console.WriteLine();
+        }
+
+        private static void WriteMarkdownFile(string filePath, string markdownContent, string message)
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine($"\t{message}");
+            Console.ResetColor();
+
+            File.WriteAllText(filePath, markdownContent);
 
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine($"\tDONE! - {TerminalURL(filePath, filePath)}");
