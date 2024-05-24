@@ -23,6 +23,10 @@ namespace AbletonLiveManualToPDF
         public string LinkPageContains { get => _linkPageContains; }
 
         // Mandatory
+        private string _markdownFilePath;
+        public string MarkdownFilePath { get => _markdownFilePath; }
+
+        // Mandatory
         private string _pdfFilePath;
         public string PdfFilePath { get => _pdfFilePath; }
 
@@ -40,6 +44,7 @@ namespace AbletonLiveManualToPDF
                 _homePage = ConfigurationManager.AppSettings["HomePage"];
                 _htmlFilePath = ConfigurationManager.AppSettings["HtmlFilePath"];
                 _linkPageContains = ConfigurationManager.AppSettings["LinkPageContains"];
+                _markdownFilePath = ConfigurationManager.AppSettings["MarkdownFilePath"];
                 _pdfFilePath = ConfigurationManager.AppSettings["PdfFilePath"];
 
                 // Optionals
@@ -61,6 +66,8 @@ namespace AbletonLiveManualToPDF
                 ValidationResult = new ValidationResult("HtmlFilePath is mandatory but found null or empty");
             else if (String.IsNullOrEmpty(LinkPageContains))
                 ValidationResult = new ValidationResult("LinkPageContains is mandatory but found null or empty");
+            else if (String.IsNullOrEmpty(MarkdownFilePath))
+                ValidationResult = new ValidationResult("MardownFilePath is mandatory but found null or empty");
             else if (String.IsNullOrEmpty(PdfFilePath))
                 ValidationResult = new ValidationResult("PdfFilePath is mandatory but found null or empty");
         }

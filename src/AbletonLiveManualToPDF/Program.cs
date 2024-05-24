@@ -14,6 +14,16 @@ namespace AbletonLiveManualToPDF
 
             PrintHeaderInformation(nameOfProject);
 
+            // Show the date time (informative information)
+            Console.ResetColor();
+            Console.Write(" ");
+            Console.BackgroundColor = ConsoleColor.White;
+            Console.ForegroundColor = ConsoleColor.Black;
+            Console.Write($" {DateTime.Now} ");
+            Console.ResetColor();
+            Console.WriteLine();
+            Console.WriteLine();
+
             // Reading Settings...
             Console.ResetColor();
             Console.Write(" ");
@@ -69,10 +79,20 @@ namespace AbletonLiveManualToPDF
                     Console.WriteLine();
 
                     // Read the HTML Content from Ableton Live web site
-                    var htmlContent = await ReadHtmlContentAsync(links, settings.HeaderPage);
+                    var htmlContent = await ReadHtmlRawContentAsync(links);
+
+                    // Convert HTML to Markdown
+                    var htmlToMarkdown = htmlContent;
+                    var markdownContent = ConvertoContentToMarkdown(htmlToMarkdown);
+
+                    // Write the Markdown Content to disk
+                    WriteHtmlFile(settings.MarkdownFilePath, htmlContent, "Writing the Markdown file...");
+
+                    // Convert the Raw HTML to HTML using the template
+                    htmlContent = ConvertToHtml(htmlContent, settings.HeaderPage);
 
                     // Write the HTML Content parsed to disk
-                    WriteHtmlFile(settings.HtmlFilePath, htmlContent);
+                    WriteHtmlFile(settings.HtmlFilePath, htmlContent, "Writing the HTML file...");
 
                     // Write the PDF from the HTML file parsed
                     await WritePdfFileAsync(settings);
@@ -88,6 +108,16 @@ namespace AbletonLiveManualToPDF
                     Console.WriteLine();
                 }
             }
+
+            // Show the date time (informative information)
+            Console.ResetColor();
+            Console.Write(" ");
+            Console.BackgroundColor = ConsoleColor.White;
+            Console.ForegroundColor = ConsoleColor.Black;
+            Console.Write($" {DateTime.Now} ");
+            Console.ResetColor();
+            Console.WriteLine();
+            Console.WriteLine();
 
             // Process Finished!
             Console.ResetColor();
@@ -135,6 +165,11 @@ namespace AbletonLiveManualToPDF
             Console.WriteLine($"'{settings.LinkPageContains}'");
 
             Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.Write("\tMarkdownFilePath: ");
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine($"'{settings.MarkdownFilePath}'");
+
+            Console.ForegroundColor = ConsoleColor.Yellow;
             Console.Write("\tPdfFilePath: ");
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine($"'{settings.PdfFilePath}'");
@@ -168,11 +203,8 @@ namespace AbletonLiveManualToPDF
             return links;
         }
 
-        private static async Task<string> ReadHtmlContentAsync(List<string> links, string headerPage)
+        private static async Task<string> ReadHtmlRawContentAsync(List<string> links)
         {
-            if (headerPage == null)
-                headerPage = string.Empty;
-
             var downloadedFiles = 0;
 
             // Prepare the HttpClient object to get each page
@@ -235,15 +267,25 @@ namespace AbletonLiveManualToPDF
                 Console.ResetColor();
             }
 
-            // Generating HTML File
+            // Generating the Markdown and HTML Files
             Console.WriteLine();
             Console.ResetColor();
             Console.Write(" ");
             Console.BackgroundColor = ConsoleColor.Cyan;
             Console.ForegroundColor = ConsoleColor.Black;
-            Console.Write(" (3 of 4) Generating HTML file... ");
+            Console.Write(" (3 of 4) Generating the Markdown and HTML files... ");
             Console.ResetColor();
             Console.WriteLine();
+            Console.WriteLine();
+
+            // Return the Raw HTML Content ready to be processed
+            return htmlContent.ToString();
+        }
+
+        private static string ConvertToHtml(string htmlContent, string headerPage)
+        {
+            if (headerPage == null)
+                headerPage = String.Empty;
 
             // Web template used for each page
             var abletonLiveWebTemplate = "<!DOCTYPE html><html class=\"no-js\" lang=\"en\"><head><title>Ableton | Reference Manual Version 12</title><link rel=\"stylesheet\" href=\"https://cdn-resources.ableton.com/80bA26cPQ1hEJDFjpUKntxfqdmG3ZykO/static/CACHE/css/output.766b6321509d.css\" type=\"text/css\"></head><body class=\"\"><div id=\"main\" class=\"main js-main\"><div class=\"page\"><div class=\"bars abl-pt-1u\"><section class=\"body-text body-text--manual js-manual-content\">#HEADER_PAGE# #HTML_CONTENT#</div></div></div><script src=\"https://cdn-resources.ableton.com/80bA26cPQ1hEJDFjpUKntxfqdmG3ZykO/static/CACHE/js/output.0d080a3258f0.js\"></script><script src=\"https://cdn-resources.ableton.com/80bA26cPQ1hEJDFjpUKntxfqdmG3ZykO/static/scripts/dist/modal-bf7a8605561c291deaee.521bdf865c72.js\" ></script><script src=\"https://cdn-resources.ableton.com/80bA26cPQ1hEJDFjpUKntxfqdmG3ZykO/static/CACHE/js/output.b12367c8def4.js\"></script><script src=\"https://cdn-resources.ableton.com/80bA26cPQ1hEJDFjpUKntxfqdmG3ZykO/static/scripts/dist/agnosticAxe-bf7a8605561c291deaee.d41d8cd98f00.js\" ></script></body></html>";
@@ -257,23 +299,164 @@ namespace AbletonLiveManualToPDF
             return abletonLiveWebTemplate;
         }
 
-        private static void WriteHtmlFile(string htmlFilePath, string htmlContent)
+        private static string ConvertoContentToMarkdown(string htmlContent)
+        {
+            if (htmlContent == null)
+                return String.Empty;
+
+            var htmlDocument = new HtmlDocument();
+            htmlDocument.LoadHtml(htmlContent);
+
+            // Avoid null reference exception
+            htmlDocument.OptionEmptyCollection = true;
+
+            foreach (var htmlNode in htmlDocument.DocumentNode.SelectNodes("//a[@href]"))
+            {
+                var linkCaptionValue = htmlNode.InnerHtml;
+                var hrefValue = htmlNode.Attributes["href"].Value;
+
+                var newNodeText = $"[{linkCaptionValue}]({hrefValue})";
+                var newHtmlNode = HtmlNode.CreateNode(newNodeText);
+                htmlNode.ParentNode.ReplaceChild(newHtmlNode, htmlNode);
+            }
+
+
+            foreach (var htmlNode in htmlDocument.DocumentNode.SelectNodes("//figure[contains(@class, 'image-container')]"))
+            {
+                var figCaptionNode = htmlNode.SelectSingleNode("//figcaption");
+                var figCaptionValue = figCaptionNode.InnerHtml;
+
+                var imageSourceTag = htmlNode.SelectSingleNode("//img[@data-src]");
+                var imageSourceValue = imageSourceTag.GetAttributeValue("data-src", "");
+
+                var newNodeText = $"{Environment.NewLine}{Environment.NewLine}![{imageSourceValue}]({imageSourceValue}){Environment.NewLine}{Environment.NewLine}**{figCaptionValue}**{Environment.NewLine}{Environment.NewLine}";
+                var newHtmlNode = HtmlNode.CreateNode(newNodeText);
+                htmlNode.ParentNode.ReplaceChild(newHtmlNode, htmlNode);
+            }
+
+            var querySelectNodes = htmlDocument.DocumentNode.SelectNodes("//span[contains(@class, 'header-section-number')]");
+            foreach (var htmlNode in querySelectNodes.ToList())
+            {
+                var newNodeText = $"{htmlNode.InnerHtml}";
+                var newHtmlNode = HtmlNode.CreateNode(newNodeText);
+                htmlNode.ParentNode.ReplaceChild(newHtmlNode, htmlNode);
+            }
+
+            var query = htmlDocument.DocumentNode.Descendants("h1");
+            foreach (var htmlNode in query.ToList())
+            {
+                var newNodeText = $"<p><br># {htmlNode.InnerHtml}<br></p>";
+                var newHtmlNode = HtmlNode.CreateNode(newNodeText);
+                htmlNode.ParentNode.ReplaceChild(newHtmlNode, htmlNode);
+            }
+
+            query = htmlDocument.DocumentNode.Descendants("h2");
+            foreach (var htmlNode in query.ToList())
+            {
+                var newNodeText = $"<p><br>## {htmlNode.InnerHtml}<br></p>";
+                var newHtmlNode = HtmlNode.CreateNode(newNodeText);
+                htmlNode.ParentNode.ReplaceChild(newHtmlNode, htmlNode);
+            }
+
+            query = htmlDocument.DocumentNode.Descendants("h3");
+            foreach (var htmlNode in query.ToList())
+            {
+                var newNodeText = $"<p><br>### {htmlNode.InnerHtml}<br></p>";
+                var newHtmlNode = HtmlNode.CreateNode(newNodeText);
+                htmlNode.ParentNode.ReplaceChild(newHtmlNode, htmlNode);
+            }
+
+            query = htmlDocument.DocumentNode.Descendants("figcaption");
+            foreach (var htmlNode in query.ToList())
+            {
+                var newNodeText = $"> {htmlNode.InnerHtml}";
+                var newHtmlNode = HtmlNode.CreateNode(newNodeText);
+                htmlNode.ParentNode.ReplaceChild(newHtmlNode, htmlNode);
+            }
+
+            query = htmlDocument.DocumentNode.Descendants("kbd");
+            foreach (var item in query.ToList())
+            {
+                var newNodeText = $"`{item.InnerHtml}` ";
+                var newHtmlNode = HtmlNode.CreateNode(newNodeText);
+                item.ParentNode.ReplaceChild(newHtmlNode, item);
+            }
+
+            query = htmlDocument.DocumentNode.Descendants("span");
+            foreach (var htmlNode in query.ToList())
+            {
+                var newNodeText = HtmlNode.CreateNode(String.Empty);
+                htmlNode.ParentNode.ReplaceChild(newNodeText, htmlNode);
+            }
+
+            htmlContent = htmlDocument.DocumentNode.InnerHtml;
+            htmlContent = htmlContent.Replace("<li>", "* ");
+            htmlContent = htmlContent.Replace("</li>", Environment.NewLine);
+            htmlContent = htmlContent.Replace("<strong>", "**");
+            htmlContent = htmlContent.Replace("</strong>", "**");
+            htmlContent = htmlContent.Replace("<em>", "*");
+            htmlContent = htmlContent.Replace("</em>", "*");
+            htmlContent = htmlContent.Replace("<p>", Environment.NewLine + Environment.NewLine);
+            htmlContent = htmlContent.Replace("</p>", Environment.NewLine);
+            htmlContent = htmlContent.Replace("<br>", Environment.NewLine + Environment.NewLine);
+
+            htmlContent = RemoveUnwantedTags(htmlContent);
+
+            return htmlContent;
+        }
+
+        private static string RemoveUnwantedTags(string data)
+        {
+            if (string.IsNullOrEmpty(data)) return string.Empty;
+
+            var document = new HtmlDocument();
+            document.LoadHtml(data);
+
+            var acceptableTags = new String[] { "strong", "em", "u" };
+
+            var nodes = new Queue<HtmlNode>(document.DocumentNode.SelectNodes("./*|./text()"));
+            while (nodes.Count > 0)
+            {
+                var node = nodes.Dequeue();
+                var parentNode = node.ParentNode;
+
+                if (!acceptableTags.Contains(node.Name) && node.Name != "#text")
+                {
+                    var childNodes = node.SelectNodes("./*|./text()");
+
+                    if (childNodes != null)
+                    {
+                        foreach (var child in childNodes)
+                        {
+                            nodes.Enqueue(child);
+                            parentNode.InsertBefore(child, node);
+                        }
+                    }
+
+                    parentNode.RemoveChild(node);
+
+                }
+            }
+
+            return document.DocumentNode.InnerHtml;
+        }
+
+        private static void WriteHtmlFile(string filePath, string htmlContent, string message)
         {
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("\tWriting the HTML file...");
+            Console.WriteLine($"\t{message}");
             Console.ResetColor();
 
-            File.WriteAllText(htmlFilePath, htmlContent);
+            File.WriteAllText(filePath, htmlContent);
 
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"\tDONE! - {TerminalURL(htmlFilePath, htmlFilePath)}");
+            Console.WriteLine($"\tDONE! - {TerminalURL(filePath, filePath)}");
             Console.ResetColor();
             Console.WriteLine();
         }
 
         private static async Task WritePdfFileAsync(Settings settings)
         {
-
             // Generating PDF File
             Console.ResetColor();
             Console.Write(" ");
@@ -282,6 +465,11 @@ namespace AbletonLiveManualToPDF
             Console.Write(" (4 of 4) Generating the PDF file... ");
             Console.ResetColor();
             Console.WriteLine();
+
+            // Downloading Chromium (information)
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("\tDownloading Chromium...");
+            Console.ResetColor();
 
             // Download the Browser Executable
             await new BrowserFetcher().DownloadAsync();
@@ -292,8 +480,19 @@ namespace AbletonLiveManualToPDF
                 Headless = true, // = false for testing
             };
 
+            // Launching Chromium (information)
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("\tLaunching Chromium internally...");
+            Console.ResetColor();
+
             // Open a new page in the controlled Browser
             using var browser = await Puppeteer.LaunchAsync(launchOptions);
+
+            // Executing Chromium (information)
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("\tExecuting Chromium to get the content...");
+            Console.ResetColor();
+
             using (var page = await browser.NewPageAsync())
             {
                 await page.GoToAsync($"file://{settings.HtmlFilePath}", 50000, new[] { WaitUntilNavigation.Networkidle2 });
@@ -303,8 +502,8 @@ namespace AbletonLiveManualToPDF
                     Format = PaperFormat.A4,
                     DisplayHeaderFooter = false,
                     MarginOptions = new MarginOptions() { Top = "50px", Bottom = "50px" },
-                    HeaderTemplate = "",
-                    FooterTemplate = "",
+                    HeaderTemplate = String.Empty,
+                    FooterTemplate = String.Empty,
                 };
 
                 Console.ForegroundColor = ConsoleColor.Yellow;

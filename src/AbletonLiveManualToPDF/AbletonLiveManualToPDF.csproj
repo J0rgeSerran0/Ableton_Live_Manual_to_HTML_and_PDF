@@ -10,7 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="HtmlAgilityPack" Version="1.11.61" />
-    <PackageReference Include="PuppeteerSharp" Version="17.0.0" />
+    <PackageReference Include="PuppeteerSharp" Version="18.0.0" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.0" />
   </ItemGroup>
 
